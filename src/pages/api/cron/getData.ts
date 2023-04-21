@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
@@ -71,8 +71,6 @@ const storeDataforEanFromKasseLappenToDb = async (ean: string) => {
     );
     const data: unknown = await apiResponse.json();
     const res = await kasseLappEANResponseDto.parseAsync(data);
-    //TODO Endre, be good boy 🐶
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await prisma.eanResponeDtos.create({
       data: {
         payload: res,
@@ -85,7 +83,7 @@ const storeDataforEanFromKasseLappenToDb = async (ean: string) => {
 };
 
 async function GET(_: NextApiRequest, res: NextApiResponse) {
-  const eans = ["7037204177125"];
+  const eans = ["7037203627263","7038010014604", "7311311020599","7311310031015","7311312002112","5713496000489","3254474019274","7031540001625","7048840000456"];
   for (const ean of eans) {
     await storeDataforEanFromKasseLappenToDb(ean);
   }
