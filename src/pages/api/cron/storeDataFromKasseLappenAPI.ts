@@ -76,16 +76,20 @@ const storeDataforEanFromKasseLappenToDb = async (ean: string) => {
         payload: res,
       },
     });
-    return res;
+    return [res, null];
   } catch (e) {
     console.error(e);
+    return [null, "Could not store payloads"]
   }
 };
-
+// Todo - this should either be a POST or a PUT request to be a true RESTful API. Might have to consider changing it in the future. 
 async function GET(_: NextApiRequest, res: NextApiResponse) {
-  const eans = ["7037203627263","7038010014604", "7311311020599","7311310031015","7311312002112","5713496000489","3254474019274","7031540001625","7048840000456"];
+  const eans = ["7037203627263", "7038010014604", "7311311020599", "7311310031015", "7311312002112", "5713496000489", "3254474019274", "7031540001625", "7048840000456"];
   for (const ean of eans) {
-    await storeDataforEanFromKasseLappenToDb(ean);
+    const [data, err] = await storeDataforEanFromKasseLappenToDb(ean);
+    if (err) {
+      return res.status(500).json({ message: "Failure!" })
+    }
   }
   return res.status(200).json({ message: "Success!" });
 }
