@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/getData",
+      "path": "/api/cron/storeDataFromKasseLappenAPI",
       "schedule": "0 5 * * *"
     }
   ]
