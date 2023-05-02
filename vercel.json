@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/storeDataFromKasseLappenAPI",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/processDataFromKasseLappenApiPayloads",
+      "schedule": "0 6 * * *"
     }
   ]
 }

@@ -7,7 +7,7 @@ const priceDto = z.object({
   price: z.number(),
   date: z.string(),
 });
-const kasseLappEANResponseDto = z.object({
+export const kasseLappEANResponseDto = z.object({
   data: z.object({
     ean: z.string(),
     products: z.array(
@@ -79,16 +79,30 @@ const storeDataforEanFromKasseLappenToDb = async (ean: string) => {
     return [res, null];
   } catch (e) {
     console.error(e);
-    return [null, "Could not store payloads"]
+    return [null, "Could not store payloads"];
   }
 };
-// Todo - this should either be a POST or a PUT request to be a true RESTful API. Might have to consider changing it in the future. 
-async function GET(_: NextApiRequest, res: NextApiResponse) {
-  const eans = ["7037203627263", "7038010014604", "7311311020599", "7311310031015", "7311312002112", "5713496000489", "3254474019274", "7031540001625", "7048840000456"];
-  for (const ean of eans) {
+// Todo - this should either be a POST or a PUT request to be a true RESTful API. Might have to consider changing it in the future.
+async function GET(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
+  const eans = [
+    "7037203627263",
+    "7038010014604",
+    "7311311020599",
+    "7311310031015",
+    "7311312002112",
+    "5713496000489",
+    "3254474019274",
+    "7031540001625",
+    "7048840000456",
+  ];
+  for await (const ean of eans) {
     const [data, err] = await storeDataforEanFromKasseLappenToDb(ean);
     if (err) {
-      return res.status(500).json({ message: "Failure!" })
+      return res.status(500).json({ message: "Failure!" });
     }
   }
   return res.status(200).json({ message: "Success!" });
