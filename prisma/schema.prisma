@@ -13,18 +13,18 @@ model EanResponeDtos {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   payload   Json
+  processed Boolean  @default(false)
 }
 
 model Product {
   id       String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  ean       String   @unique
+  ean       String  
   url       String
   name      String
   extraData String?
   store     String
-  created   DateTime
-  updated   DateTime
   currentPrice Float
+  @@unique([ean, store])
 }
