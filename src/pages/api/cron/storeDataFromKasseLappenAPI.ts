@@ -41,7 +41,7 @@ export const kasseLappEANResponseDto = z.object({
         z.object({
           code: z.string(),
           display_name: z.string(),
-          contains: z.enum(["YES", "NO"]),
+          contains: z.enum(["YES", "NO", "UNKNOWN"]),
         })
       )
       .nullable(),
@@ -98,6 +98,7 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     "3254474019274",
     "7031540001625",
     "7048840000456",
+    "7040514501184",
   ];
   for await (const ean of eans) {
     const [data, err] = await storeDataforEanFromKasseLappenToDb(ean);
