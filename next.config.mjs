@@ -25,6 +25,14 @@ const config = {
     ignoreDuringBuilds: true,
   },
   swcMinify: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
 };
 
 export default config;
