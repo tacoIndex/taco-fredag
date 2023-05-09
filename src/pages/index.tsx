@@ -23,7 +23,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.png" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE]">
-        <section className="flex w-3/5 flex-col items-center">
+        <section className="w-3xl flex flex-col items-center">
           <div className="items-top mb-12 flex w-fit grow-0 flex-row justify-center gap-0  ">
             <span className="text-3xl">🌮</span>
             <h1 className="text-center text-3xl">
@@ -31,7 +31,7 @@ const Home: NextPage = () => {
             </h1>
             <span className="text-3xl">🌮</span>
           </div>
-          <article className="flex w-fit flex-col rounded-lg bg-[#FBE0C7] p-8">
+          <article className="flex flex-col rounded-lg bg-[#FBE0C7] p-8">
             <p className=" mb-6 text-[#33373D]">
               <strong>I handlekurven</strong>
             </p>
@@ -63,7 +63,7 @@ const Home: NextPage = () => {
               })}
             </div>
           </article>
-          <p>
+          <p className=" self-end ">
             Sist oppdatert: {dateFormatter.format(products?.at(0)?.updatedAt)}
           </p>
         </section>
