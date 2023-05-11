@@ -24,18 +24,19 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE]">
         <section className="w-3xl flex flex-col items-center">
-          <div className="items-top mb-12 flex w-fit grow-0 flex-row justify-center gap-0  ">
+          <div className="items-top mb-12 flex w-fit grow-0 flex-row  justify-center ">
             <span className="text-3xl">🌮</span>
             <h1 className="text-center text-3xl">
               Hvor skal jeg handle inn til tacofredag?
             </h1>
             <span className="text-3xl">🌮</span>
           </div>
-          <article className="flex flex-col rounded-lg bg-[#FBE0C7] p-8">
+          <article className="flex flex-col">
+            <div className="rounded-lg bg-[#FBE0C7] p-8 mb-2 xl:mb-0">
             <p className=" mb-6 text-[#33373D]">
               <strong>I handlekurven</strong>
             </p>
-            <div className="grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-5 md:gap-3">
               {products?.map((product) => {
                 return (
                   <div
@@ -47,8 +48,9 @@ const Home: NextPage = () => {
                         <Image
                           alt={product.name}
                           src={product.url}
-                          layout="fill"
-                          objectFit="contain"
+                          placeholder="empty"
+                          fill
+                          style={{objectFit: "contain"}}
                         />
                       </div>
                     </div>
@@ -62,10 +64,12 @@ const Home: NextPage = () => {
                 );
               })}
             </div>
-          </article>
-          <p className=" self-end ">
+            </div>
+            <p className="self-end ">
             Sist oppdatert: {dateFormatter.format(products?.at(0)?.updatedAt)}
           </p>
+          </article>
+
         </section>
       </main>
     </>
