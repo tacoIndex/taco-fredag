@@ -58,7 +58,7 @@ export const kasseLappEANResponseDto = z.object({
   }),
 });
 
-const storeDataforEanFromKasseLappenToDb = async (ean: string) => {
+const getEanDataFromKassaLapp = async (ean: string) => {
   try {
     const apiResponse = await fetch(
       "https://kassal.app/api/v1/products/ean/" + ean,
@@ -71,12 +71,7 @@ const storeDataforEanFromKasseLappenToDb = async (ean: string) => {
     );
     const data: unknown = await apiResponse.json();
     const res = await kasseLappEANResponseDto.parseAsync(data);
-    await prisma.eanResponeDtos.create({
-      data: {
-        payload: res,
-      },
-    });
-    return [res, null];
+    return [{ payload: res }, null];
   } catch (e) {
     console.error(e);
     return [null, "Could not store payloads"];
@@ -100,12 +95,19 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     "7048840000456",
     "7040514501184",
   ];
-  for await (const ean of eans) {
-    const [data, err] = await storeDataforEanFromKasseLappenToDb(ean);
+
+  const payloads: Array<{payload: z.infer<typeof kasseLappEANResponseDto>}> = [];
+  for (const ean of eans) {
+    const [data, err] = await getEanDataFromKassaLapp(ean);
     if (err) {
       return res.status(500).json({ message: "Failure!" });
     }
+    payloads.push(data as {payload: z.infer<typeof kasseLappEANResponseDto>})
   }
+
+  await prisma.eanResponeDtos.createMany({
+    data: payloads
+  });
   return res.status(200).json({ message: "Success!" });
 }
 export default GET;
