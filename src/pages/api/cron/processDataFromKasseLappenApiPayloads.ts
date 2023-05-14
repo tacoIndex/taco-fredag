@@ -24,6 +24,7 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
         currentPrice: product.current_price.price,
         store: product.store.name,
         url: product.image,
+        updatedAt: product.updated_at,
         extraData: "",
       }
 
