@@ -23,8 +23,8 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ product
         />
         <link rel="icon" href="/favicon.png" />
       </Head> 
-      <div className="h-screen bg-[url('../../public/120-padded-favicon.png')] bg-repeat-space bg-[length:60px]">
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE]  bg-opacity-90">
+      <div className="min-h-screen bg-[url('../../public/120-padded-favicon.png')] bg-repeat-space bg-[length:60px]">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE] pt-5 md:pt-0  bg-opacity-90">
         <section className="w-3xl flex flex-col items-center">
           <div className="items-top mb-12 flex w-fit grow-0 flex-row  justify-center ">
             <span className="text-3xl">🌮</span>
@@ -34,7 +34,7 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ product
             <span className="text-3xl">🌮</span>
           </div>
           <article className="flex flex-col">
-            <div className="mb-2 rounded-lg bg-[#FBE0C7] p-8 xl:mb-0">
+            <div className="mb-4 rounded-lg bg-[#FBE0C7] p-8 xl:mb-0 ">
               <p className=" mb-6 text-[#33373D]">
                 <strong>I handlekurven</strong>
               </p>
@@ -67,7 +67,8 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ product
                 })}
               </div>
             </div>
-            <p className="self-end ">
+
+            <p className="sm:self-end mb-4 self-center ">
               Sist oppdatert:
               {dateFormatter.format(
                 new Date(lastUpdated)
