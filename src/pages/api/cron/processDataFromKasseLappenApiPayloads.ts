@@ -8,16 +8,21 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
   const productsToCreate = [];
   const productsToBeCreated: string[] = [];
 
-  const productInformation = (await prisma.product.findMany()).reduce((a, product) => ({ ...a, [`${product.ean}_${product.store}`]: product.updatedAt }), {})
+  const productInformation = (await prisma.product.findMany()).reduce(
+    (a, product) => ({
+      ...a,
+      [`${product.ean}_${product.store}`]: product.updatedAt,
+    }),
+    {}
+  );
 
   for (const productFromKassaLapp of productsFromKassaLapp) {
-
     const { data: validatedPayload } = kasseLappEANResponseDto.parse(
       productFromKassaLapp.payload
-    )
+    );
 
     for (const product of validatedPayload.products) {
-      const ean = validatedPayload.ean
+      const ean = validatedPayload.ean;
       const productToInsertToDb = {
         ean,
         name: product.name,
@@ -26,65 +31,67 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
         url: product.image,
         updatedAt: product.updated_at,
         extraData: "",
-      }
+      };
 
-      const key = `${validatedPayload.ean}_${product.store.name}`
-      const productUpdatedAt = new Date(product.updated_at)
+      const key = `${validatedPayload.ean}_${product.store.name}`;
+      const productUpdatedAt = new Date(product.updated_at);
 
       if (key in productInformation) {
-        const internalProductUpdatedAt = new Date(productInformation[key as keyof typeof productInformation])
+        const internalProductUpdatedAt = new Date(
+          productInformation[key as keyof typeof productInformation]
+        );
 
         if (productUpdatedAt > internalProductUpdatedAt) {
           productsToUpdate.push(productToInsertToDb);
         }
 
-        continue
+        continue;
       }
 
       if (!productsToBeCreated.includes(key)) {
-        productsToBeCreated.push(key)
-        productsToCreate.push(productToInsertToDb)
+        productsToBeCreated.push(key);
+        productsToCreate.push(productToInsertToDb);
       }
     }
   }
 
   await prisma.product.createMany({
-    data: productsToCreate
-  })
+    data: productsToCreate,
+  });
   for (const productToUpdate of productsToUpdate) {
     await prisma.product.update({
       where: {
         ean_store: {
           ean: productToUpdate.ean,
-          store: productToUpdate.store
-        }
+          store: productToUpdate.store,
+        },
       },
-      data: productToUpdate
-    })
+      data: productToUpdate,
+    });
   }
-}
+};
 
-async function PUT(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "PUT") {
+async function GET(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "GET") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
   const eanResponseDtos = await prisma.eanResponeDtos.findMany({
     where: {
-      processed: false
-    }
+      processed: false,
+    },
   });
 
   await upsertRecords(eanResponseDtos);
 
   await prisma.eanResponeDtos.updateMany({
     where: {
-      id: { in: eanResponseDtos.map(eRD => eRD.id) },
+      id: { in: eanResponseDtos.map((eRD) => eRD.id) },
     },
     data: {
-      processed: true
-    }
+      processed: true,
+    },
   });
   return res.status(200).json({ message: "Success!" });
 }
-export default PUT;
+export default GET;

@@ -22,8 +22,9 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ product
           content="Finn ut hvor du skal kjøpe fredags tacoen din"
         />
         <link rel="icon" href="/favicon.png" />
-      </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE]">
+      </Head> 
+      <div className="h-screen bg-[url('../../public/120-padded-favicon.png')] bg-repeat-space bg-[length:60px]">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE]  bg-opacity-90">
         <section className="w-3xl flex flex-col items-center">
           <div className="items-top mb-12 flex w-fit grow-0 flex-row  justify-center ">
             <span className="text-3xl">🌮</span>
@@ -75,6 +76,8 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ product
           </article>
         </section>
       </main>
+      </div>
+  
     </>
   );
 };
