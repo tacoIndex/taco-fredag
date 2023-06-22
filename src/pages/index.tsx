@@ -3,6 +3,7 @@ import { prisma } from "~/server/db";
 import Head from "next/head";
 import Image from "next/image";
 import type { NextPage } from "next";
+import { getCartPrices } from "~/server/api/cart";
 
 const dateFormatter = Intl.DateTimeFormat("nb-NO", {
   weekday: "long",
@@ -11,7 +12,7 @@ const dateFormatter = Intl.DateTimeFormat("nb-NO", {
   year: "2-digit",
 });
 
-const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ products, lastUpdated }) => {
+const Home: NextPage<{ products: Product[], lastUpdated:  number, cartPrices: {name: string, price: number, offset: number}[] }> = ({ products, lastUpdated, cartPrices }) => {
 
   return (
     <>
@@ -74,6 +75,24 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ product
                 new Date(lastUpdated)
               )}
             </p>
+
+            <h1 className='text-center text-2xl font-semibold  mb-5 mt-4'> Handlekurven er billigst hos {cartPrices[0]?.name} 🎉</h1>
+            {cartPrices?.map((store, index) => { 
+              return <div key={store.name} className="flex mb-2 ">
+                        <div className= {`flex items-center w-full h-20 justify-between p-4 rounded-lg 
+                        ${index == 0 ? "bg-green-300/[.75]" : "bg-white/[.9]" }
+                        `}>  
+                        <p className= {`${index == 0 ? "text-lg" : "text-md"}`}>
+                          <span className={`${index == 0 ? "text-3xl" : "text-2xl"}`} >{(index + 1).toString() + ". "}</span>
+                          {store.name}
+                        </p> 
+                        <div>
+                           <p className= {`${index == 0 ? "text-lg" : "text-md"}`}>{store.price.toFixed(2) + " kr"}</p>
+                           <p className="text-xs text-gray-600 text-right" >{index == 0 ? "" : "+" + Math.round(store.offset).toString()}</p>
+                        </div>
+                        </div>
+                     </div>
+            })}
           </article>
         </section>
       </main>
@@ -85,18 +104,23 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number }> = ({ product
 
 export async function getStaticProps() {
   const products = await prisma.product.findMany();
+  const cartPrices = await getCartPrices();
   const uniqueProducts = products.filter(
     (product, index, self) =>
       index === self.findIndex((t) => t.ean === product.ean)
   );
-  const fixedPaylods: unknown = JSON.parse(JSON.stringify(uniqueProducts))
+  const fixedPaylods: unknown = JSON.parse(JSON.stringify(uniqueProducts));
+  const cartPricesFixed: unknown = JSON.parse(JSON.stringify(cartPrices));
+
+   
 
   const lastUpdated = Math.max(...products.map(product => product.updatedAt.getTime()))
 
   return {
     props: {
       products: fixedPaylods,
-      lastUpdated
+      lastUpdated,
+      cartPrices: cartPricesFixed,
     },
     revalidate: 43200,
   };
