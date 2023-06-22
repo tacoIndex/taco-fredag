@@ -103,6 +103,7 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     if (err) {
       console.log(`Ean code ${ean} failed to store data fra KassaLapp, this implies corrupted data from the service provider`)
       anyFailure = true
+      continue
     }
     payloads.push(data as {payload: z.infer<typeof kasseLappEANResponseDto>})
   }
