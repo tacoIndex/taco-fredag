@@ -97,10 +97,12 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
   ];
 
   const payloads: Array<{payload: z.infer<typeof kasseLappEANResponseDto>}> = [];
+  let anyFailure = false; 
   for (const ean of eans) {
     const [data, err] = await getEanDataFromKassaLapp(ean);
     if (err) {
-      return res.status(500).json({ message: "Failure!" });
+      console.log(`Ean code ${ean} failed to store data fra KassaLapp, this implies corrupted data from the service provider`)
+      anyFailure = true
     }
     payloads.push(data as {payload: z.infer<typeof kasseLappEANResponseDto>})
   }
@@ -108,6 +110,9 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
   await prisma.eanResponeDtos.createMany({
     data: payloads
   });
+  if (anyFailure){
+    return res.status(200).json({message: "Some error occured"})
+  }
   return res.status(200).json({ message: "Success!" });
 }
 export default GET;
