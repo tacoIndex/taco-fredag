@@ -25,8 +25,8 @@ const Home: NextPage<{ products: Product[], lastUpdated:  number, cartPrices: {n
         <link rel="icon" href="/favicon.png" />
       </Head> 
       <div className="min-h-screen bg-[url('../../public/120-padded-favicon.png')] bg-repeat-space bg-[length:60px]">
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE] pt-5 md:pt-0  bg-opacity-90">
-        <section className="w-3xl flex flex-col items-center">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FEEFDE]  bg-opacity-90">
+        <section className="w-3xl flex flex-col items-center p-3 mb:p-4 lg:pt-6">
           <div className="items-top mb-12 flex w-fit grow-0 flex-row  justify-center ">
             <span className="text-3xl">🌮</span>
             <h1 className="text-center text-3xl">
