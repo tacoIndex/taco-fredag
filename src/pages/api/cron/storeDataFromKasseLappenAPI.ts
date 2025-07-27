@@ -34,7 +34,7 @@ export const kasseLappEANResponseDto = z.object({
         }),
         created_at: z.string().datetime(),
         updated_at: z.string().datetime(),
-      })
+      }),
     ),
     allergens: z
       .array(
@@ -42,7 +42,7 @@ export const kasseLappEANResponseDto = z.object({
           code: z.string(),
           display_name: z.string(),
           contains: z.enum(["YES", "NO", "UNKNOWN"]),
-        })
+        }),
       )
       .nullable(),
     nutrition: z
@@ -52,7 +52,7 @@ export const kasseLappEANResponseDto = z.object({
           display_name: z.string(),
           amount: z.number(),
           unit: z.string(),
-        })
+        }),
       )
       .nullable(),
   }),
@@ -60,15 +60,12 @@ export const kasseLappEANResponseDto = z.object({
 
 const getEanDataFromKassaLapp = async (ean: string) => {
   try {
-    const apiResponse = await fetch(
-      "https://kassal.app/api/v1/products/ean/" + ean,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${env.KASSE_LAPPEN_API_KEY}`,
-        },
-      }
-    );
+    const apiResponse = await fetch(`https://kassal.app/api/v1/products/ean/${ean}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${env.KASSE_LAPPEN_API_KEY}`,
+      },
+    });
     const data: unknown = await apiResponse.json();
     const res = await kasseLappEANResponseDto.parseAsync(data);
     return [{ payload: res }, null];
@@ -96,23 +93,25 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     "7040514501184",
   ];
 
-  const payloads: Array<{payload: z.infer<typeof kasseLappEANResponseDto>}> = [];
-  let anyFailure = false; 
+  const payloads: Array<{ payload: z.infer<typeof kasseLappEANResponseDto> }> = [];
+  let anyFailure = false;
   for (const ean of eans) {
     const [data, err] = await getEanDataFromKassaLapp(ean);
     if (err) {
-      console.log(`Ean code ${ean} failed to store data fra KassaLapp, this implies corrupted data from the service provider`)
-      anyFailure = true
-      continue
+      console.log(
+        `Ean code ${ean} failed to store data fra KassaLapp, this implies corrupted data from the service provider`,
+      );
+      anyFailure = true;
+      continue;
     }
-    payloads.push(data as {payload: z.infer<typeof kasseLappEANResponseDto>})
+    payloads.push(data as { payload: z.infer<typeof kasseLappEANResponseDto> });
   }
 
   await prisma.eanResponeDtos.createMany({
-    data: payloads
+    data: payloads,
   });
-  if (anyFailure){
-    return res.status(200).json({message: "Some error occured"})
+  if (anyFailure) {
+    return res.status(200).json({ message: "Some error occured" });
   }
   return res.status(200).json({ message: "Success!" });
 }

@@ -7,8 +7,7 @@ export const productRouter = createTRPCRouter({
   getUniqueProduct: publicProcedure.query(async ({ ctx }) => {
     const products = await ctx.prisma.product.findMany();
     const uniqueProducts = products.filter(
-      (product, index, self) =>
-        index === self.findIndex((t) => t.ean === product.ean)
+      (product, index, self) => index === self.findIndex((t) => t.ean === product.ean),
     );
     return uniqueProducts;
   }),

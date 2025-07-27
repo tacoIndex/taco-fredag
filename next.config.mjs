@@ -8,23 +8,26 @@ await import("./src/env.mjs");
 const config = {
   reactStrictMode: true,
 
-  /**
-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
-   * out.
-   *
-   * @see https://github.com/vercel/next.js/issues/41980
-   */
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+  // Next.js 15 best practices
+  experimental: {
+    // Enable partial prerendering for better performance
+    // ppr: true, // Only available in canary
+    // Optimize package imports
+    optimizePackageImports: ["@tanstack/react-query", "@trpc/react-query"],
   },
+
+  // Compiler optimizations
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+
+  // TypeScript - we'll handle errors with biome
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  swcMinify: true,
+
+  // Image optimization
   images: {
     remotePatterns: [
       {
@@ -32,7 +35,15 @@ const config = {
         hostname: "**",
       },
     ],
+    formats: ["image/avif", "image/webp"],
   },
+
+  // Performance optimizations
+  poweredByHeader: false,
+  compress: true,
+
+  // Generate standalone output for better deployment
+  output: "standalone",
 };
 
 export default config;
