@@ -64,7 +64,8 @@ const Home = ({
               </div>
 
               <p className="sm:self-end mb-4 self-center ">
-                Sist oppdatert: {dateFormatter.format(new Date(lastUpdated)).replace(/^\w/, (c) => c.toUpperCase())}
+                Sist oppdatert:{" "}
+                {dateFormatter.format(new Date(lastUpdated)).replace(/^\w/, (c) => c.toUpperCase())}
               </p>
 
               <h1 className="text-center text-2xl font-semibold  mb-5 mt-4">
