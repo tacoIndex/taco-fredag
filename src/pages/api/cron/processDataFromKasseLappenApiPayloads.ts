@@ -8,13 +8,11 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
   const productsToCreate = [];
   const productsToBeCreated: string[] = [];
 
-  const productInformation = (await prisma.product.findMany()).reduce(
-    (a, product) => ({
-      ...a,
-      [`${product.ean}_${product.store}`]: product.updatedAt,
-    }),
-    {},
-  );
+  const productInformation: Record<string, Date> = {};
+  const existingProducts = await prisma.product.findMany();
+  for (const product of existingProducts) {
+    productInformation[`${product.ean}_${product.store}`] = product.updatedAt;
+  }
 
   for (const productFromKassaLapp of productsFromKassaLapp) {
     const { data: validatedPayload } = kasseLappEANResponseDto.parse(productFromKassaLapp.payload);

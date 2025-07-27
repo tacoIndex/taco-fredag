@@ -66,7 +66,7 @@ export const api = createTRPCNext<AppRouter>({
    * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
    */
   ssr: false,
-  
+
   /**
    * Transformer for serializing / deserializing data
    * Required at the top level for tRPC Next.js integration

@@ -55,9 +55,7 @@ const Home = ({
                             />
                           </div>
                         </div>
-                        <p className="text-center text-xs text-[#454d60]">
-                          {product.extraData}
-                        </p>
+                        <p className="text-center text-xs text-[#454d60]">{product.extraData}</p>
                         <p className=" text-ellipsis	text-center	 text-sm">{product.name}</p>
                       </div>
                     );

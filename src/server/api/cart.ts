@@ -14,11 +14,11 @@ export const getCartPrices = async () => {
   }, {});
 
   const averagePrices: { [key: string]: number } = {};
-  Object.entries(groupedDto).forEach(([ean, prices]) => {
+  for (const [ean, prices] of Object.entries(groupedDto)) {
     const averagePrice = prices.reduce((a, b) => a + b, 0) / prices.length;
 
     averagePrices[ean] = averagePrice;
-  });
+  }
 
   const uniqueProducts = products.filter(
     (product, index, self) => index === self.findIndex((t) => t.ean === product.ean),
