@@ -26,14 +26,14 @@ const Home = ({
       </Head>
       <div className="min-h-screen bg-[url('/120-padded-favicon.png')] bg-repeat-space bg-[length:60px]">
         <main className="flex min-h-screen flex-col items-center justify-center bg-taco-overlay">
-          <section className="w-3xl flex flex-col items-center p-3 mb:p-4 lg:pt-6">
+          <section className="w-full max-w-3xl flex flex-col items-center p-3 sm:p-4 lg:pt-6">
             <div className="items-top mb-12 flex w-fit grow-0 flex-row  justify-center ">
               <span className="text-3xl">🌮</span>
               <h1 className="text-center text-3xl">Hvor skal jeg handle inn til tacofredag?</h1>
               <span className="text-3xl">🌮</span>
             </div>
             <article className="flex flex-col">
-              <div className="mb-4 rounded-lg bg-[#fbe0c7] p-8 xl:mb-0 ">
+              <div className="mb-4 rounded-lg bg-[#fbe0c7] p-4 sm:p-8 xl:mb-0 ">
                 <p className=" mb-6 text-[#33373d]">
                   <strong>I handlekurven</strong>
                 </p>
@@ -64,8 +64,8 @@ const Home = ({
               </div>
 
               <p className="sm:self-end mb-4 self-center ">
-                Sist oppdatert:
-                {dateFormatter.format(new Date(lastUpdated))}
+                Sist oppdatert:{" "}
+                {dateFormatter.format(new Date(lastUpdated)).replace(/^\w/, (c) => c.toUpperCase())}
               </p>
 
               <h1 className="text-center text-2xl font-semibold  mb-5 mt-4">

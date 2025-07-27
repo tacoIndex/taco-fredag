@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx npm-check-updates)",
+      "Bash(npx npm-check-updates:*)",
+      "Bash(npm install)",
+      "Bash(npx biome check:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:taco-fredag.vercel.app)",
+      "Bash(find:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run format:*)",
+      "Bash(npm run verify:*)",
+      "Bash(node:*)"
+    ],
+    "deny": []
+  }
+}
