@@ -1,3 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+:root {
+  --color-taco-bg: #feefde;
+  --color-taco-card: #fbe0c7;
+  --color-taco-text: #33373d;
+  --color-taco-text-muted: #454d60;
+}
+
+@layer base {
+  .bg-taco-overlay {
+    background-color: rgb(254 239 222 / 0.9);
+  }
+}

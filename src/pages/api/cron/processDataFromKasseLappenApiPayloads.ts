@@ -13,13 +13,11 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
       ...a,
       [`${product.ean}_${product.store}`]: product.updatedAt,
     }),
-    {}
+    {},
   );
 
   for (const productFromKassaLapp of productsFromKassaLapp) {
-    const { data: validatedPayload } = kasseLappEANResponseDto.parse(
-      productFromKassaLapp.payload
-    );
+    const { data: validatedPayload } = kasseLappEANResponseDto.parse(productFromKassaLapp.payload);
 
     for (const product of validatedPayload.products) {
       const ean = validatedPayload.ean;
@@ -38,7 +36,7 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
 
       if (key in productInformation) {
         const internalProductUpdatedAt = new Date(
-          productInformation[key as keyof typeof productInformation]
+          productInformation[key as keyof typeof productInformation],
         );
 
         if (productUpdatedAt > internalProductUpdatedAt) {
@@ -92,6 +90,19 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
       processed: true,
     },
   });
+
+  // Trigger ISR revalidation after data update
+  try {
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : `http://localhost:${process.env.PORT ?? 3000}`;
+
+    const revalidateUrl = `${baseUrl}/api/revalidate?secret=${process.env.REVALIDATION_SECRET}`;
+    await fetch(revalidateUrl);
+  } catch (error) {
+    console.error("Failed to trigger revalidation:", error);
+  }
+
   return res.status(200).json({ message: "Success!" });
 }
 export default GET;

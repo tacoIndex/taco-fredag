@@ -6,10 +6,10 @@
  */
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
-import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import superjson from "superjson";
 
-import { type AppRouter } from "~/server/api/root";
+import type { AppRouter } from "~/server/api/root";
 
 const getBaseUrl = () => {
   if (typeof window !== "undefined") return ""; // browser should use relative url
@@ -21,13 +21,6 @@ const getBaseUrl = () => {
 export const api = createTRPCNext<AppRouter>({
   config() {
     return {
-      /**
-       * Transformer used for data de-serialization from the server.
-       *
-       * @see https://trpc.io/docs/data-transformers
-       */
-      transformer: superjson,
-
       /**
        * Links used to determine request flow from client to server.
        *
@@ -41,8 +34,30 @@ export const api = createTRPCNext<AppRouter>({
         }),
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
+          /**
+           * Transformer used for data de-serialization from the server.
+           * In tRPC v11, transformer moved to the link level
+           *
+           * @see https://trpc.io/docs/data-transformers
+           */
+          transformer: superjson,
+          headers() {
+            return {
+              // Add any headers if needed
+            };
+          },
         }),
       ],
+
+      /**
+       * @see https://tanstack.com/query/latest/docs/react/reference/QueryClient
+       */
+      defaultOptions: {
+        queries: {
+          staleTime: 5 * 60 * 1000, // 5 minutes
+          refetchOnWindowFocus: false,
+        },
+      },
     };
   },
   /**
@@ -51,6 +66,12 @@ export const api = createTRPCNext<AppRouter>({
    * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
    */
   ssr: false,
+  
+  /**
+   * Transformer for serializing / deserializing data
+   * Required at the top level for tRPC Next.js integration
+   */
+  transformer: superjson,
 });
 
 /**

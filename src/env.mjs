@@ -8,6 +8,8 @@ const server = z.object({
   DATABASE_URL: z.string().url(),
   KASSE_LAPPEN_API_KEY: z.string(),
   NODE_ENV: z.enum(["development", "test", "production"]),
+  REVALIDATION_SECRET: z.string().optional(),
+  VERCEL_URL: z.string().optional(),
 });
 
 /**
@@ -28,6 +30,8 @@ const processEnv = {
   DATABASE_URL: process.env.DATABASE_URL,
   KASSE_LAPPEN_API_KEY: process.env.KASSE_LAPPEN_API_KEY,
   NODE_ENV: process.env.NODE_ENV,
+  REVALIDATION_SECRET: process.env.REVALIDATION_SECRET,
+  VERCEL_URL: process.env.VERCEL_URL,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 
@@ -56,10 +60,7 @@ if (!skip) {
   );
 
   if (parsed.success === false) {
-    console.error(
-      "❌ Invalid environment variables:",
-      parsed.error.flatten().fieldErrors
-    );
+    console.error("❌ Invalid environment variables:", parsed.error.flatten().fieldErrors);
     throw new Error("Invalid environment variables");
   }
 
@@ -72,7 +73,7 @@ if (!skip) {
         throw new Error(
           process.env.NODE_ENV === "production"
             ? "❌ Attempted to access a server-side environment variable on the client"
-            : `❌ Attempted to access server-side environment variable '${prop}' on the client`
+            : `❌ Attempted to access server-side environment variable '${prop}' on the client`,
         );
       return target[/** @type {keyof typeof target} */ (prop)];
     },
