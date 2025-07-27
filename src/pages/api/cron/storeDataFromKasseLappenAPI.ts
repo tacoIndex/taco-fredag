@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
+import { AppError, withErrorHandler } from "~/utils/error-handler";
+import { logger } from "~/utils/logger";
 
 const priceDto = z.object({
   price: z.number(),
@@ -66,19 +68,25 @@ const getEanDataFromKassaLapp = async (ean: string) => {
         Authorization: `Bearer ${env.KASSE_LAPPEN_API_KEY}`,
       },
     });
+
+    if (!apiResponse.ok) {
+      throw new Error(`API returned ${apiResponse.status}: ${apiResponse.statusText}`);
+    }
+
     const data: unknown = await apiResponse.json();
     const res = await kasseLappEANResponseDto.parseAsync(data);
     return [{ payload: res }, null];
   } catch (e) {
-    console.error(e);
-    return [null, "Could not store payloads"];
+    logger.error(`Failed to fetch EAN ${ean} from KassaLapp`, e);
+    return [null, e instanceof Error ? e.message : "Could not fetch data"];
   }
 };
-// Todo - this should either be a POST or a PUT request to be a true RESTful API. Might have to consider changing it in the future.
-async function GET(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
-    return res.status(405).json({ message: "Method not allowed" });
+    throw new AppError("Method not allowed", 405);
   }
+
+  logger.info("Starting KassaLapp data fetch cron job");
 
   const eans = [
     "7037203627263",
@@ -93,26 +101,51 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     "7040514501184",
   ];
 
+  // Fetch all EAN data in parallel for better performance
+  const eanPromises = eans.map(async (ean) => {
+    const [data, err] = await getEanDataFromKassaLapp(ean);
+    return { ean, data, err };
+  });
+
+  const results = await Promise.all(eanPromises);
+
   const payloads: Array<{ payload: z.infer<typeof kasseLappEANResponseDto> }> = [];
   let anyFailure = false;
-  for (const ean of eans) {
-    const [data, err] = await getEanDataFromKassaLapp(ean);
+
+  for (const { ean, data, err } of results) {
     if (err) {
-      console.log(
-        `Ean code ${ean} failed to store data fra KassaLapp, this implies corrupted data from the service provider`,
-      );
+      console.error(`Ean code ${ean} failed to store data from KassaLapp: ${err}`);
       anyFailure = true;
       continue;
     }
-    payloads.push(data as { payload: z.infer<typeof kasseLappEANResponseDto> });
+    if (data) {
+      payloads.push(data as { payload: z.infer<typeof kasseLappEANResponseDto> });
+    }
   }
 
-  await prisma.eanResponeDtos.createMany({
-    data: payloads,
-  });
-  if (anyFailure) {
-    return res.status(200).json({ message: "Some error occured" });
+  if (payloads.length > 0) {
+    await prisma.eanResponeDtos.createMany({
+      data: payloads,
+    });
+    logger.info(`Stored ${payloads.length} EAN responses`);
   }
-  return res.status(200).json({ message: "Success!" });
+
+  if (anyFailure) {
+    logger.warn("Some EAN codes failed to fetch", {
+      totalEans: eans.length,
+      successCount: payloads.length,
+    });
+    return res.status(200).json({
+      message: "Partial success",
+      processed: payloads.length,
+      failed: eans.length - payloads.length,
+    });
+  }
+
+  return res.status(200).json({
+    message: "Success!",
+    processed: payloads.length,
+  });
 }
-export default GET;
+
+export default withErrorHandler(handler);

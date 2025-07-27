@@ -1,59 +1,79 @@
 import { prisma } from "~/server/db";
 
-export const getCartPrices = async () => {
-  const products = await prisma.product.findMany();
+interface StorePrice {
+  name: string;
+  price: number;
+  offset?: number;
+}
 
-  const groupedDto = products.reduce((acc: { [key: string]: number[] }, obj) => {
-    const key = obj.ean;
-    if (!acc[key]) {
-      acc[key] = [];
-    }
+export const getCartPrices = async (): Promise<StorePrice[]> => {
+  // Fetch all products with optimized query
+  const products = await prisma.product.findMany({
+    select: {
+      ean: true,
+      store: true,
+      currentPrice: true,
+      name: true,
+      url: true,
+      extraData: true,
+    },
+  });
 
-    acc[key]?.push(obj.currentPrice);
-    return acc;
-  }, {});
+  // Create a Map for O(1) lookups instead of multiple array operations
+  const productsByEanStore = new Map<string, (typeof products)[0]>();
+  const eanSet = new Set<string>();
+  const storeSet = new Set<string>();
 
-  const averagePrices: { [key: string]: number } = {};
-  for (const [ean, prices] of Object.entries(groupedDto)) {
-    const averagePrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-
-    averagePrices[ean] = averagePrice;
+  for (const product of products) {
+    productsByEanStore.set(`${product.ean}_${product.store}`, product);
+    eanSet.add(product.ean);
+    storeSet.add(product.store);
   }
 
-  const uniqueProducts = products.filter(
-    (product, index, self) => index === self.findIndex((t) => t.ean === product.ean),
-  );
+  // Calculate average prices per EAN more efficiently
+  const averagePrices = new Map<string, number>();
+  for (const ean of eanSet) {
+    const eanProducts = products.filter((p) => p.ean === ean);
+    const avgPrice = eanProducts.reduce((sum, p) => sum + p.currentPrice, 0) / eanProducts.length;
+    averagePrices.set(ean, avgPrice);
+  }
 
-  const uniqueStores = products.filter(
-    (product, index, self) => index === self.findIndex((t) => t.store === product.store),
-  );
+  // Calculate cart prices for each store
+  const storePrices: StorePrice[] = [];
 
-  const uniqueStoresWithCartPrice = uniqueStores.map((store) => {
-    const storeName = store.store;
-    const priceList = uniqueProducts.map((product) => {
-      const ean = product.ean;
-      const productPrice = products.find(
-        (product) => product.ean === ean && product.store === storeName,
-      )?.currentPrice;
+  for (const store of storeSet) {
+    let totalPrice = 0;
 
-      return productPrice ?? averagePrices[ean] ?? 0;
+    for (const ean of eanSet) {
+      const product = productsByEanStore.get(`${ean}_${store}`);
+      // Use actual price if available, otherwise use average
+      totalPrice += product?.currentPrice ?? averagePrices.get(ean) ?? 0;
+    }
+
+    storePrices.push({
+      name: store,
+      price: totalPrice,
     });
+  }
 
-    const price = priceList?.reduce((a, b) => a + b, 0);
+  // Sort by price and calculate offsets
+  storePrices.sort((a, b) => a.price - b.price);
+  const lowestPrice = storePrices[0]?.price ?? 0;
 
-    return {
-      name: storeName,
-      price,
-    };
+  return storePrices.map((store) => ({
+    ...store,
+    offset: store.price - lowestPrice,
+  }));
+};
+
+// Get unique products for display
+export const getUniqueProducts = async () => {
+  const products = await prisma.product.findMany({
+    orderBy: {
+      updatedAt: "desc",
+    },
+    distinct: ["ean"],
   });
 
-  const sortedStores = uniqueStoresWithCartPrice.sort((a, b) => {
-    return a.price - b.price;
-  });
-  const lowestCartPriceStore = sortedStores[0]?.price;
-  const cartPrices = uniqueStoresWithCartPrice.map((store) => {
-    return { ...store, offset: store.price - (lowestCartPriceStore || 0) };
-  });
-
-  return cartPrices;
+  return products;
 };

@@ -2,8 +2,7 @@ import type { Product } from "@prisma/client";
 import type { GetStaticProps, InferGetStaticPropsType } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { getCartPrices } from "~/server/api/cart";
-import { prisma } from "~/server/db";
+import { getCartPrices, getUniqueProducts } from "~/server/api/cart";
 
 const dateFormatter = Intl.DateTimeFormat("nb-NO", {
   weekday: "long",
@@ -91,7 +90,7 @@ const Home = ({
                           {`${store.price.toFixed(2)} kr`}
                         </p>
                         <p className="text-xs text-gray-600 text-right">
-                          {index === 0 ? "" : `+${Math.round(store.offset).toString()}`}
+                          {index === 0 ? "" : `+${Math.round(store.offset ?? 0).toString()}`}
                         </p>
                       </div>
                     </div>
@@ -108,24 +107,15 @@ const Home = ({
 
 export const getStaticProps = (async () => {
   try {
-    const products = await prisma.product.findMany({
-      orderBy: {
-        updatedAt: "desc",
-      },
-    });
-    const cartPrices = await getCartPrices();
-
-    const uniqueProducts = products.filter(
-      (product, index, self) => index === self.findIndex((t) => t.ean === product.ean),
-    );
+    const [uniqueProducts, cartPrices] = await Promise.all([getUniqueProducts(), getCartPrices()]);
 
     // Serialize data for Next.js
     const serializedProducts = JSON.parse(JSON.stringify(uniqueProducts)) as Product[];
     const serializedCartPrices = JSON.parse(JSON.stringify(cartPrices)) as typeof cartPrices;
 
     const lastUpdated =
-      products.length > 0
-        ? Math.max(...products.map((product) => product.updatedAt.getTime()))
+      uniqueProducts.length > 0
+        ? Math.max(...uniqueProducts.map((product) => product.updatedAt.getTime()))
         : Date.now();
 
     return {

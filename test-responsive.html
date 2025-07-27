@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Responsive Test</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #333;
+            color: white;
+            padding: 10px;
+            z-index: 1000;
+        }
+        .controls button {
+            margin: 0 5px;
+            padding: 5px 10px;
+        }
+        #frame-container {
+            margin-top: 50px;
+            text-align: center;
+            background: #f0f0f0;
+            min-height: 100vh;
+        }
+        iframe {
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button onclick="setSize(375, 667)">iPhone SE (375x667)</button>
+        <button onclick="setSize(390, 844)">iPhone 12 (390x844)</button>
+        <button onclick="setSize(768, 1024)">iPad (768x1024)</button>
+        <button onclick="setSize(1024, 768)">Desktop Small (1024x768)</button>
+        <button onclick="setSize(1440, 900)">Desktop Large (1440x900)</button>
+    </div>
+    <div id="frame-container">
+        <iframe id="responsive-frame" src="http://localhost:3001" frameborder="0"></iframe>
+    </div>
+    <script>
+        function setSize(width, height) {
+            const frame = document.getElementById('responsive-frame');
+            frame.style.width = width + 'px';
+            frame.style.height = height + 'px';
+        }
+        // Start with iPhone SE size
+        setSize(375, 667);
+    </script>
+</body>
+</html>
