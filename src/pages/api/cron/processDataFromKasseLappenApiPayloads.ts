@@ -33,9 +33,9 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
       const productUpdatedAt = new Date(product.updated_at);
 
       if (key in productInformation) {
-        const internalProductUpdatedAt = new Date(
-          productInformation[key]!,
-        );
+        const storedDate = productInformation[key];
+        if (!storedDate) continue;
+        const internalProductUpdatedAt = new Date(storedDate);
 
         if (productUpdatedAt > internalProductUpdatedAt) {
           productsToUpdate.push(productToInsertToDb);
