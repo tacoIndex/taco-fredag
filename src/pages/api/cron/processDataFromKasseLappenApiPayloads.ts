@@ -34,7 +34,7 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
 
       if (key in productInformation) {
         const internalProductUpdatedAt = new Date(
-          productInformation[key as keyof typeof productInformation],
+          productInformation[key]!,
         );
 
         if (productUpdatedAt > internalProductUpdatedAt) {
