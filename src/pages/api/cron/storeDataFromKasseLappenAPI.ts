@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
+import { withDbRetries } from "~/server/db-utils";
 
 const priceDto = z.object({
   price: z.number(),
@@ -19,14 +20,16 @@ export const kasseLappEANResponseDto = z.object({
         description: z.string().nullable(),
         ingredients: z.string().nullable(),
         url: z.string(),
-        image: z.string(),
-        store: z.object({
-          name: z.string(),
-          code: z.string(),
-          url: z.string(),
-          logo: z.string(),
-        }),
-        current_price: priceDto,
+        image: z.string().nullable(),
+        store: z
+          .object({
+            name: z.string(),
+            code: z.string(),
+            url: z.string(),
+            logo: z.string(),
+          })
+          .nullable(),
+        current_price: priceDto.nullable(),
         price_history: z.array(priceDto).nullable(),
         kassalapp: z.object({
           url: z.string(),
@@ -107,12 +110,21 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     payloads.push(data as { payload: z.infer<typeof kasseLappEANResponseDto> });
   }
 
-  await prisma.eanResponeDtos.createMany({
-    data: payloads,
-  });
-  if (anyFailure) {
-    return res.status(200).json({ message: "Some error occured" });
+  try {
+    const result = await withDbRetries(() =>
+      prisma.eanResponeDtos.createMany({
+        data: payloads,
+        skipDuplicates: true,
+      }),
+    );
+    if (anyFailure) {
+      return res.status(200).json({ message: "Partial success", stored: result.count });
+    }
+    return res.status(200).json({ message: "Success!", stored: result.count });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to store payloads:", error);
+    return res.status(500).json({ message: "Failed to store payloads", error: message });
   }
-  return res.status(200).json({ message: "Success!" });
 }
 export default GET;
