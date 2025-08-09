@@ -2,10 +2,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Use Prisma Accelerate in runtime (PRISMA_DATABASE_URL) and direct connection for migrations (DATABASE_URL)
 datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider  = "postgresql"
+  url       = env("PRISMA_DATABASE_URL")
+  directUrl = env("DATABASE_URL")
 }
 
 model EanResponeDtos {
