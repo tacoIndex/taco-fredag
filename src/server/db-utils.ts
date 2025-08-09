@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import { prisma } from "~/server/db";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
