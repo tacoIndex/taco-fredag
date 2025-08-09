@@ -1,9 +1,8 @@
 import type { Product } from "@prisma/client";
-import type { GetStaticProps } from "next";
+import type { GetStaticProps, InferGetStaticPropsType } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { getCartPrices } from "~/server/api/cart";
-import type { CartStorePrice } from "~/server/api/cart";
 import { prisma } from "~/server/db";
 
 const dateFormatter = Intl.DateTimeFormat("nb-NO", {
@@ -17,11 +16,7 @@ const Home = ({
   products,
   lastUpdated,
   cartPrices,
-}: {
-  products: Product[];
-  lastUpdated: number;
-  cartPrices: CartStorePrice[];
-}) => {
+}: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
     <>
       <Head>
@@ -43,7 +38,7 @@ const Home = ({
                   <strong>I handlekurven</strong>
                 </p>
                 <div className="grid grid-cols-2 gap-2 md:grid-cols-5 md:gap-3">
-                  {products?.map((product: Product) => {
+                  {products?.map((product) => {
                     return (
                       <div
                         key={product.id}
@@ -77,7 +72,7 @@ const Home = ({
                 {" "}
                 Handlekurven er billigst hos {cartPrices[0]?.name} 🎉
               </h1>
-              {cartPrices?.map((store: CartStorePrice, index: number) => {
+              {cartPrices?.map((store, index) => {
                 return (
                   <div key={store.name} className="flex mb-2 ">
                     <div

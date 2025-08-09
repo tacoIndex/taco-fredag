@@ -1,21 +1,16 @@
-import type { EanResponeDtos, Prisma, Product } from "@prisma/client";
+import type { EanResponeDtos, Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "~/server/db";
 import { pingDb, withDbRetries } from "~/server/db-utils";
 import { kasseLappEANResponseDto } from "./storeDataFromKasseLappenAPI";
 
-type PendingUpdate = {
-  where: { ean: string; store: string };
-  data: Prisma.ProductUpdateInput;
-};
-
 const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
-  const productsToUpdate: PendingUpdate[] = [];
+  const productsToUpdate: Prisma.ProductUpdateInput[] = [];
   const productsToCreate: Prisma.ProductCreateManyInput[] = [];
   const productsToBeCreated: string[] = [];
 
   const productInformation: Record<string, Date> = {};
-  const existingProducts = await withDbRetries<Product[]>(() => prisma.product.findMany());
+  const existingProducts = await withDbRetries(() => prisma.product.findMany());
   for (const product of existingProducts) {
     productInformation[`${product.ean}_${product.store}`] = product.updatedAt;
   }
@@ -47,16 +42,7 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
         const internalProductUpdatedAt = new Date(storedDate);
 
         if (productUpdatedAt > internalProductUpdatedAt) {
-          productsToUpdate.push({
-            where: { ean, store: product.store.name },
-            data: {
-              name: product.name,
-              currentPrice: product.current_price.price,
-              url: product.image,
-              updatedAt: new Date(product.updated_at),
-              extraData: "",
-            },
-          });
+          productsToUpdate.push(productToInsertToDb);
         }
 
         continue;
@@ -80,11 +66,11 @@ const upsertRecords = async (productsFromKassaLapp: EanResponeDtos[]) => {
       prisma.product.update({
         where: {
           ean_store: {
-            ean: productToUpdate.where.ean,
-            store: productToUpdate.where.store,
+            ean: productToUpdate.ean as string,
+            store: productToUpdate.store as string,
           },
         },
-        data: productToUpdate.data,
+        data: productToUpdate,
       }),
     );
   }
@@ -99,7 +85,7 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     // Wake DB if provider auto-sleeps (e.g., Neon serverless)
     await pingDb();
 
-    const eanResponseDtos = await withDbRetries<EanResponeDtos[]>(() =>
+    const eanResponseDtos = await withDbRetries(() =>
       prisma.eanResponeDtos.findMany({
         where: {
           processed: false,
@@ -112,7 +98,7 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     const updated = await withDbRetries(() =>
       prisma.eanResponeDtos.updateMany({
         where: {
-          id: { in: eanResponseDtos.map((eRD: EanResponeDtos) => eRD.id) },
+          id: { in: eanResponseDtos.map((eRD) => eRD.id) },
         },
         data: {
           processed: true,
